@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1000 подтягиваний</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2e2e2e;--text:#f0f0f0;--muted:#888;--accent:#c8f566;--accent-dim:rgba(200,245,102,0.12);--red:#ff5f5f;--yellow:#f5c518;--blue:#5fa8ff;--radius:12px;--font:'Manrope',sans-serif;--mono:'DM Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+.screen{display:none;min-height:100vh;padding:20px;max-width:480px;margin:0 auto;padding-bottom:90px;}
+.screen.active{display:block;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;border:none;background:none;padding:8px 0;margin-bottom:20px;font-family:var(--font);}
+.back-btn:hover{color:var(--text);}
+.back-btn::before{content:'←';font-size:16px;}
+.app-title{font-size:13px;color:var(--muted);font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+.screen-title{font-size:26px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+.screen-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+.prog-wrap{background:var(--surface);border-radius:4px;height:4px;margin-bottom:28px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width 0.5s ease;}
+.phase-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color 0.15s,background 0.15s;display:flex;align-items:center;justify-content:space-between;}
+.phase-item:hover{border-color:#444;background:#1f1f1f;}
+.phase-tag{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:20px;margin-bottom:6px;display:inline-block;}
+.phase-name{font-size:16px;font-weight:600;}
+.phase-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.phase-done{width:20px;height:20px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);}
+.week-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:14px;}
+.week-item:hover{border-color:#444;}
+.week-num{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--muted);min-width:28px;}
+.week-info{flex:1;}
+.week-name{font-size:14px;font-weight:600;}
+.week-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.week-stat{font-family:var(--mono);font-size:13px;color:var(--accent);}
+.day-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:12px;}
+.day-item:hover{border-color:#444;}
+.day-dot{width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0;font-family:var(--mono);text-align:center;line-height:1.2;}
+.day-dot.done{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.day-info{flex:1;min-width:0;}
+.day-name{font-size:14px;font-weight:600;}
+.day-type{font-size:12px;color:var(--muted);margin-top:2px;}
+/* WORKOUT */
+.workout-badge{display:inline-block;font-size:11px;font-family:var(--mono);color:var(--accent);background:var(--accent-dim);padding:4px 10px;border-radius:20px;margin-bottom:12px;}
+.workout-desc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;}
+.desc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;}
+.desc-row:not(:last-child){border-bottom:1px solid var(--border);}
+.desc-label{font-size:12px;color:var(--muted);}
+.desc-val{font-size:13px;font-weight:600;color:var(--text);font-family:var(--mono);}
+.desc-val.hi{color:var(--accent);}
+/* COUNTER — 3 elements: −N | number | +N */
+.counter-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:10px;}
+.counter-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;font-family:var(--mono);}
+.counter-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.cbtn{height:52px;min-width:72px;border-radius:26px;border:1px solid var(--border);background:var(--surface2);font-family:var(--mono);font-size:17px;font-weight:500;cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:center;padding:0 18px;flex-shrink:0;}
+.cbtn:hover{border-color:#555;background:#2a2a2a;}
+.cbtn:active{transform:scale(0.93);}
+.cbtn.neg{color:var(--red);border-color:rgba(255,95,95,0.3);}
+.cbtn.pos{color:var(--accent);border-color:rgba(200,245,102,0.3);}
+.counter-val-wrap{flex:1;display:flex;justify-content:center;min-width:0;}
+.counter-val{font-family:var(--mono);font-size:54px;font-weight:500;color:var(--text);text-align:center;cursor:pointer;border-radius:8px;padding:2px 8px;transition:background 0.15s;user-select:none;border:1.5px solid transparent;}
+.counter-val:hover{background:var(--surface2);border-color:var(--border);}
+.counter-input{font-family:var(--mono);font-size:48px;font-weight:500;color:var(--accent);text-align:center;background:var(--surface2);border:1.5px solid var(--accent);border-radius:8px;width:150px;padding:2px 8px;display:none;}
+.counter-input:focus{outline:none;}
+.save-btn{width:100%;padding:16px;background:var(--accent);color:#0f0f0f;font-family:var(--font);font-size:15px;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;transition:opacity 0.15s;margin-bottom:6px;}
+.save-btn:hover{opacity:0.88;}
+.saved-msg{text-align:center;font-size:13px;color:var(--accent);margin-bottom:14px;min-height:18px;opacity:0;transition:opacity 0.3s;}
+.saved-msg.show{opacity:1;}
+/* TIMERS */
+.timer-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;}
+.timer-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;font-family:var(--mono);}
+.timer-input-row{display:flex;gap:8px;margin-bottom:14px;align-items:center;}
+.timer-input-row label{font-size:12px;color:var(--muted);min-width:28px;}
+.t-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:15px;padding:7px 10px;width:64px;text-align:center;}
+.t-input:focus{outline:none;border-color:#555;}
+.t-display{font-family:var(--mono);font-size:48px;font-weight:500;color:var(--text);text-align:center;margin:10px 0;letter-spacing:0.04em;}
+.t-display.running{color:var(--accent);}
+.t-display.running-rest{color:var(--yellow);}
+.timer-btns{display:flex;gap:8px;}
+.tbtn{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;}
+.tbtn:hover{border-color:#555;}
+.tbtn.primary{background:var(--accent);color:#0f0f0f;border-color:var(--accent);}
+.tbtn.primary:hover{opacity:0.88;}
+.tbtn.primary-yellow{background:var(--yellow);color:#0f0f0f;border-color:var(--yellow);}
+.tbtn.danger{border-color:var(--red);color:var(--red);}
+.tbtn.danger:hover{background:rgba(255,95,95,0.08);}
+/* COMMENT */
+.comment-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.comment-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-family:var(--mono);}
+.comment-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:14px;padding:10px 12px;resize:none;height:90px;overflow-y:auto;line-height:1.5;}
+.comment-textarea:focus{outline:none;border-color:#555;}
+/* OVERLAYS */
+.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:999;}
+.overlay.show{display:flex;}
+.ov-bg{position:absolute;inset:0;opacity:0;transition:opacity 0.3s;}
+.ov-bg.green{background:#22c55e;}
+.ov-bg.yellow{background:#ca8a04;}
+.ov-bg.visible{opacity:1;}
+.ov-modal{position:relative;background:#0f0f0f;border-radius:var(--radius);padding:26px 30px;text-align:center;z-index:1;min-width:230px;border:1px solid var(--border);}
+.ov-title{font-size:18px;font-weight:700;margin-bottom:5px;}
+.ov-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.ov-btns{display:flex;gap:8px;}
+.ov-btn{flex:1;padding:11px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:opacity 0.15s;}
+.ov-btn.green-btn{background:var(--accent);color:#0f0f0f;}
+.ov-btn.yellow-btn{background:var(--yellow);color:#0f0f0f;}
+.ov-btn.neutral{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.ov-btn:hover{opacity:0.85;}
+/* HISTORY / STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.stat-val{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--accent);}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:4px;}
+.history-item{display:flex;flex-direction:column;gap:4px;padding:12px 0;border-bottom:1px solid var(--border);}
+.history-item:last-child{border-bottom:none;}
+.home-stats{display:flex;gap:10px;margin-bottom:24px;}
+.home-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.home-stat-val{font-family:var(--mono);font-size:22px;font-weight:500;}
+.home-stat-lbl{font-size:11px;color:var(--muted);margin-top:3px;}
+.export-section{margin-top:24px;}
+.export-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;font-family:var(--mono);}
+.export-btns{display:flex;gap:8px;}
+.export-btn{flex:1;padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:center;}
+.export-btn:hover{border-color:#555;background:var(--surface2);}
+.export-btn.import-btn{border-color:rgba(95,168,255,0.3);color:var(--blue);}
+/* TAB BAR */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;max-width:480px;margin:0 auto;}
+.tab-bar-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 14px;cursor:pointer;gap:4px;color:var(--muted);font-size:10px;transition:color 0.15s;}
+.tab-bar-item.active{color:var(--accent);}
+.tab-bar-icon{font-size:20px;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:998;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+.modal-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:12px;padding:12px;resize:vertical;min-height:100px;}
+.modal-textarea:focus{outline:none;border-color:#555;}
+.modal-btns{display:flex;gap:8px;margin-top:12px;}
+.modal-btn{flex:1;padding:12px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:opacity 0.15s;}
+.modal-btn.confirm{background:var(--accent);color:#0f0f0f;}
+.modal-btn.cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-btn:hover{opacity:0.85;}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="app-title">трекер</div>
+  <div class="screen-title">1000 подтягиваний</div>
+  <div class="screen-sub" id="home-date"></div>
+  <div class="prog-wrap"><div class="prog-fill" id="home-prog" style="width:0%"></div></div>
+  <div class="home-stats">
+    <div class="home-stat"><div class="home-stat-val" id="home-total">0</div><div class="home-stat-lbl">сессий</div></div>
+    <div class="home-stat"><div class="home-stat-val" id="home-best">—</div><div class="home-stat-lbl">лучший</div></div>
+    <div class="home-stat"><div class="home-stat-val" id="home-last">—</div><div class="home-stat-lbl">последняя</div></div>
+  </div>
+  <div id="phase-list"></div>
+</div>
+
+<!-- PHASE -->
+<div id="screen-phase" class="screen">
+  <button class="back-btn" onclick="goBack('home')">все блоки</button>
+  <div class="screen-title" id="phase-title"></div>
+  <div class="screen-sub" id="phase-sub"></div>
+  <div id="week-list"></div>
+</div>
+
+<!-- WEEK -->
+<div id="screen-week" class="screen">
+  <button class="back-btn" id="week-back-btn">назад</button>
+  <div class="screen-title" id="week-title"></div>
+  <div class="screen-sub" id="week-sub"></div>
+  <div id="day-list"></div>
+</div>
+
+<!-- WORKOUT -->
+<div id="screen-workout" class="screen">
+  <button class="back-btn" id="workout-back-btn">назад</button>
+  <div class="workout-badge" id="workout-badge"></div>
+  <div class="screen-title" id="workout-title"></div>
+  <div class="screen-sub" id="workout-sub"></div>
+  <div class="workout-desc" id="workout-desc"></div>
+
+  <!-- Counter -->
+  <div class="counter-wrap">
+    <div class="counter-label">количество подтягиваний</div>
+    <div class="counter-row" id="counter-row"></div>
+  </div>
+  <button class="save-btn" onclick="saveWorkout()">сохранить</button>
+  <div class="saved-msg" id="saved-msg">сохранено ✓</div>
+
+  <!-- Interval timer -->
+  <div class="timer-wrap">
+    <div class="timer-label">таймер интервала</div>
+    <div class="timer-input-row">
+      <label>мин</label><input class="t-input" type="number" id="t-min" value="1" min="0" max="99">
+      <label style="margin-left:8px">сек</label><input class="t-input" type="number" id="t-sec" value="20" min="0" max="59">
+    </div>
+    <div class="t-display" id="t-display">01:20</div>
+    <div class="timer-btns">
+      <button class="tbtn primary" id="t-start-btn" onclick="timerToggle('interval')">старт</button>
+      <button class="tbtn danger" onclick="timerCancel('interval')">отмена</button>
+    </div>
+  </div>
+
+  <!-- Comment -->
+  <div class="comment-wrap">
+    <div class="comment-label">комментарий</div>
+    <textarea class="comment-textarea" id="comment-textarea" placeholder="Как прошло? Что болит? Замечания..."></textarea>
+  </div>
+
+  <!-- Rest timer -->
+  <div class="timer-wrap">
+    <div class="timer-label">таймер отдыха</div>
+    <div class="timer-input-row">
+      <label>мин</label><input class="t-input" type="number" id="r-min" value="10" min="0" max="99">
+      <label style="margin-left:8px">сек</label><input class="t-input" type="number" id="r-sec" value="0" min="0" max="59">
+    </div>
+    <div class="t-display" id="r-display">10:00</div>
+    <div class="timer-btns">
+      <button class="tbtn primary-yellow" id="r-start-btn" onclick="timerToggle('rest')">старт</button>
+      <button class="tbtn danger" onclick="timerCancel('rest')">отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="screen-history" class="screen">
+  <div class="screen-title">история</div>
+  <div class="screen-sub">все результаты</div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="hist-sessions">0</div><div class="stat-lbl">сессий</div></div>
+    <div class="stat-card"><div class="stat-val" id="hist-best">—</div><div class="stat-lbl">лучший</div></div>
+    <div class="stat-card"><div class="stat-val" id="hist-avg">—</div><div class="stat-lbl">среднее</div></div>
+    <div class="stat-card"><div class="stat-val" id="hist-streak">0</div><div class="stat-lbl">недель подряд</div></div>
+  </div>
+  <div id="history-list"></div>
+  <div class="export-section">
+    <div class="export-title">перенос данных</div>
+    <div class="export-btns">
+      <button class="export-btn" onclick="exportData()">↓ экспорт</button>
+      <button class="export-btn import-btn" onclick="showImportModal()">↑ импорт</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlays -->
+<div class="overlay" id="ov-interval">
+  <div class="ov-bg green" id="ov-interval-bg"></div>
+  <div class="ov-modal">
+    <div class="ov-title">Время вышло!</div>
+    <div class="ov-sub">Подход завершён</div>
+    <div class="ov-btns">
+      <button class="ov-btn green-btn" onclick="ovRepeat('interval')">Повторить</button>
+      <button class="ov-btn neutral" onclick="ovClose('interval')">Закрыть</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="ov-rest">
+  <div class="ov-bg yellow" id="ov-rest-bg"></div>
+  <div class="ov-modal">
+    <div class="ov-title">Отдых закончен!</div>
+    <div class="ov-sub">Пора работать</div>
+    <div class="ov-btns">
+      <button class="ov-btn yellow-btn" onclick="ovRepeat('rest')">Ещё раз</button>
+      <button class="ov-btn neutral" onclick="ovClose('rest')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal-box">
+    <div class="modal-title">Импорт данных</div>
+    <div class="modal-sub">Вставь содержимое файла экспорта</div>
+    <textarea class="modal-textarea" id="import-textarea" placeholder="Вставь сюда код..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="hideImportModal()">Отмена</button>
+      <button class="modal-btn confirm" onclick="importData()">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <div class="tab-bar-item active" id="tab-home" onclick="switchTab('home')">
+    <div class="tab-bar-icon">⊞</div>план
+  </div>
+  <div class="tab-bar-item" id="tab-history" onclick="switchTab('history')">
+    <div class="tab-bar-icon">◷</div>история
+  </div>
+</div>
+
+<script>
+// ── PLAN DATA ─────────────────────────────────────────────────────
+// Time formula: sets * intervalSec / 60  (sets = reps / repsPerSet)
+function calcMins(reps, repsPerSet, intervalSec) {
+  const sets = Math.round(reps / repsPerSet);
+  return Math.ceil(sets * intervalSec / 60);
+}
+
+// Blocks 1-3: repsPerSet grows 5→6→7, interval fixed 80s
+// Blocks 4-7: repsPerSet fixed 7, interval shrinks 75→70→65→60s
+const BLOCKS = [
+  { id:'b1', label:'Блок 1', name:'5 повт / 80 сек', color:'#5fa8ff',
+    repsPerSet:5, intervalSec:80, vtReps:[150,165,190],
+    cht:{sets:8,  repsEach:10, rest:90}, wk:['Неделя 1','Неделя 2','Неделя 3'] },
+  { id:'b2', label:'Блок 2', name:'6 повт / 80 сек', color:'#c8f566',
+    repsPerSet:6, intervalSec:80, vtReps:[204,234,258],
+    cht:{sets:10, repsEach:10, rest:80}, wk:['Неделя 4','Неделя 5','Неделя 6'] },
+  { id:'b3', label:'Блок 3', name:'7 повт / 80 сек', color:'#a78bfa',
+    repsPerSet:7, intervalSec:80, vtReps:[280,315,350],
+    cht:{sets:12, repsEach:10, rest:75}, wk:['Неделя 7','Неделя 8','Неделя 9'] },
+  { id:'b4', label:'Блок 4', name:'7 повт / 75 сек', color:'#34d399',
+    repsPerSet:7, intervalSec:75, vtReps:[385,420,455],
+    cht:{sets:15, repsEach:10, rest:70}, wk:['Неделя 10','Неделя 11','Неделя 12'] },
+  { id:'b5', label:'Блок 5', name:'7 повт / 70 сек', color:'#fb923c',
+    repsPerSet:7, intervalSec:70, vtReps:[490,525,560],
+    cht:{sets:18, repsEach:10, rest:65}, wk:['Неделя 13','Неделя 14','Неделя 15'] },
+  { id:'b6', label:'Блок 6', name:'7 повт / 65 сек', color:'#f472b6',
+    repsPerSet:7, intervalSec:65, vtReps:[595,650,700],
+    cht:{sets:20, repsEach:10, rest:60}, wk:['Неделя 16','Неделя 17','Неделя 18'] },
+  { id:'b7', label:'Блок 7', name:'7 повт / 60 сек', color:'#ff5f5f',
+    repsPerSet:7, intervalSec:60, vtReps:[750,840,1000],
+    cht:{sets:22, repsEach:10, rest:55}, wk:['Неделя 19','Неделя 20','Неделя 21 — ШТУРМ 🎯'] },
+];
+
+const PLAN = BLOCKS.map((b, bi) => ({
+  id:b.id, label:b.label, name:b.name, color:b.color, repsPerSet:b.repsPerSet,
+  weeks: b.wk.map((wname, wi) => {
+    const vtR = b.vtReps[wi];
+    const chtR = b.cht.sets * b.cht.repsEach;
+    const wid = b.id+'_w'+wi;
+    return {
+      id:wid, num:bi*3+wi+1, name:wname,
+      sub: b.repsPerSet+' повт / '+b.intervalSec+' сек',
+      repsPerSet:b.repsPerSet, intervalSec:b.intervalSec,
+      days:[
+        { id:wid+'_vt', day:'Вт', name:'GTG',
+          reps:vtR, repsPerSet:b.repsPerSet, intervalSec:b.intervalSec,
+          schema:b.repsPerSet+'×'+Math.round(vtR/b.repsPerSet),
+          isVolume:false, target:Math.ceil(vtR*1.15) },
+        { id:wid+'_cht', day:'Чт', name:'Объём',
+          reps:chtR, repsPerSet:b.cht.repsEach, intervalSec:b.cht.rest,
+          schema:b.cht.sets+'×'+b.cht.repsEach,
+          isVolume:true },
+        { id:wid+'_sb', day:'Сб', name:'GTG + тест',
+          reps:vtR, repsPerSet:b.repsPerSet, intervalSec:b.intervalSec,
+          schema:b.repsPerSet+'×'+Math.round(vtR/b.repsPerSet),
+          isVolume:false, target:Math.ceil(vtR*1.15) },
+      ]
+    };
+  })
+}));
+
+// ── STORAGE ───────────────────────────────────────────────────────
+const KEY = 'pullup1000_v3';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return{};}}
+function saveToDB(d){try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}}
+let DB = load();
+function getResult(id){return DB[id]||null;}
+function setResult(id,val,comment){
+  DB[id]={reps:val,comment:comment||'',date:new Date().toLocaleDateString('ru')};
+  saveToDB(DB);
+}
+
+let curPhase=null,curWeek=null,curDay=null,counterVal=0;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goBack(to){showScreen(to);}
+function switchTab(tab){
+  document.querySelectorAll('.tab-bar-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='home'){renderHome();showScreen('home');}
+  if(tab==='history'){renderHistory();showScreen('history');}
+}
+
+// ── HOME ──────────────────────────────────────────────────────────
+function renderHome(){
+  document.getElementById('home-date').textContent=new Date().toLocaleDateString('ru',{weekday:'long',day:'numeric',month:'long'});
+  const allR=Object.values(DB).filter(v=>v&&v.reps);
+  const best=allR.length?Math.max(...allR.map(v=>v.reps)):null;
+  const last=allR.length?allR[allR.length-1].reps:null;
+  document.getElementById('home-total').textContent=allR.length;
+  document.getElementById('home-best').textContent=best||'—';
+  document.getElementById('home-last').textContent=last||'—';
+  document.getElementById('home-prog').style.width=(best?Math.min(100,Math.round(best/10)):0)+'%';
+  const list=document.getElementById('phase-list');
+  list.innerHTML='';
+  PLAN.forEach(phase=>{
+    const allDays=phase.weeks.flatMap(w=>w.days);
+    const done=allDays.filter(d=>getResult(d.id));
+    const el=document.createElement('div');
+    el.className='phase-item';
+    el.innerHTML=`<div>
+      <div class="phase-tag" style="color:${phase.color};background:${phase.color}22">${phase.label}</div>
+      <div class="phase-name">${phase.name}</div>
+      <div class="phase-meta">${done.length} / ${allDays.length} выполнено</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      ${done.length===allDays.length?'<div class="phase-done">✓</div>':''}
+      <span style="color:var(--muted);font-size:20px">›</span>
+    </div>`;
+    el.onclick=()=>openPhase(phase);
+    list.appendChild(el);
+  });
+}
+
+// ── PHASE ─────────────────────────────────────────────────────────
+function openPhase(phase){
+  curPhase=phase;
+  document.getElementById('phase-title').textContent=phase.label+' — '+phase.name;
+  document.getElementById('phase-sub').textContent=phase.weeks.length+' недели · '+phase.weeks.flatMap(w=>w.days).length+' тренировок';
+  const list=document.getElementById('week-list');
+  list.innerHTML='';
+  phase.weeks.forEach(week=>{
+    const done=week.days.filter(d=>getResult(d.id));
+    const el=document.createElement('div');
+    el.className='week-item';
+    el.innerHTML=`<div class="week-num">W${week.num}</div>
+    <div class="week-info">
+      <div class="week-name">${week.name}</div>
+      <div class="week-sub">${week.sub}</div>
+    </div>
+    <div style="text-align:right">
+      <div class="week-stat">${done.length}/${week.days.length}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">выполнено</div>
+    </div>`;
+    el.onclick=()=>openWeek(week);
+    list.appendChild(el);
+  });
+  showScreen('phase');
+}
+
+// ── WEEK ──────────────────────────────────────────────────────────
+function openWeek(week){
+  curWeek=week;
+  document.getElementById('week-title').textContent=week.name;
+  document.getElementById('week-sub').textContent=week.repsPerSet+' повт / '+week.intervalSec+' сек · Вт Чт Сб';
+  document.getElementById('week-back-btn').onclick=()=>goBack('phase');
+  const list=document.getElementById('day-list');
+  list.innerHTML='';
+  week.days.forEach(day=>{
+    const result=getResult(day.id);
+    const m=calcMins(day.reps,day.repsPerSet,day.intervalSec);
+    const subtitle=`${day.reps} подтягиваний / ${m} мин / ${day.intervalSec} сек`;
+    const dotContent=result?result.reps:day.day;
+    const dotSize=String(dotContent).length>3?'10px':'12px';
+    const el=document.createElement('div');
+    el.className='day-item';
+    el.innerHTML=`<div class="day-dot ${result?'done':''}" style="font-size:${dotSize}">${dotContent}</div>
+    <div class="day-info">
+      <div class="day-name">${day.day} — ${day.name}</div>
+      <div class="day-type">${subtitle}</div>
+    </div>
+    <span style="color:var(--muted);font-size:18px;flex-shrink:0">›</span>`;
+    el.onclick=()=>openWorkout(day);
+    list.appendChild(el);
+  });
+  showScreen('week');
+}
+
+// ── WORKOUT ───────────────────────────────────────────────────────
+function openWorkout(day){
+  curDay=day;
+  timerCancel('interval'); timerCancel('rest');
+
+  document.getElementById('workout-badge').textContent=day.day+' — '+curWeek.name;
+  document.getElementById('workout-title').textContent=day.name;
+  document.getElementById('workout-sub').textContent=curPhase.label;
+
+  const m=calcMins(day.reps,day.repsPerSet,day.intervalSec);
+  const typeLabel=day.isVolume?'отдых между подходами':'интервал GTG';
+  document.getElementById('workout-desc').innerHTML=`
+    <div class="desc-row"><span class="desc-label">Схема</span><span class="desc-val">${day.schema}</span></div>
+    <div class="desc-row"><span class="desc-label">Темп</span><span class="desc-val">${day.intervalSec} сек (${typeLabel})</span></div>
+    <div class="desc-row"><span class="desc-label">Итог</span><span class="desc-val hi">${day.reps} подтягиваний / ${m} мин</span></div>
+    ${day.target?`<div class="desc-row"><span class="desc-label">Цель субботы</span><span class="desc-val hi">${day.target} подтягиваний</span></div>`:''}`;
+
+  // Auto-set interval timer from day data
+  const tm=Math.floor(day.intervalSec/60);
+  const ts=day.intervalSec%60;
+  document.getElementById('t-min').value=tm;
+  document.getElementById('t-sec').value=ts;
+  document.getElementById('t-display').textContent=fmtTime(day.intervalSec);
+  TS.interval.remaining=day.intervalSec;
+  TS.interval.total=day.intervalSec;
+
+  // Counter
+  const saved=getResult(day.id);
+  counterVal=saved?saved.reps:0;
+  document.getElementById('comment-textarea').value=saved&&saved.comment?saved.comment:'';
+  renderCounter(day.repsPerSet);
+  document.getElementById('saved-msg').classList.remove('show');
+  document.getElementById('workout-back-btn').onclick=()=>{timerCancel('interval');timerCancel('rest');goBack('week');};
+  showScreen('workout');
+}
+
+// ── COUNTER ───────────────────────────────────────────────────────
+function renderCounter(n){
+  const row=document.getElementById('counter-row');
+  row.innerHTML='';
+
+  // −N button
+  const bNeg=document.createElement('button');
+  bNeg.className='cbtn neg';
+  bNeg.textContent='−'+n;
+  bNeg.onclick=()=>changeCount(-n);
+  row.appendChild(bNeg);
+
+  // Number display + input
+  const wrap=document.createElement('div');
+  wrap.className='counter-val-wrap';
+  const disp=document.createElement('div');
+  disp.className='counter-val';
+  disp.id='counter-val';
+  disp.textContent=counterVal;
+  disp.onclick=enableCounterInput;
+  const inp=document.createElement('input');
+  inp.className='counter-input';
+  inp.id='counter-input';
+  inp.type='number'; inp.min='0'; inp.max='9999';
+  inp.onblur=disableCounterInput;
+  inp.onkeydown=handleCounterKey;
+  wrap.appendChild(disp); wrap.appendChild(inp);
+  row.appendChild(wrap);
+
+  // +N button
+  const bPos=document.createElement('button');
+  bPos.className='cbtn pos';
+  bPos.textContent='+'+n;
+  bPos.onclick=()=>changeCount(n);
+  row.appendChild(bPos);
+}
+
+function changeCount(d){
+  counterVal=Math.max(0,counterVal+d);
+  const v=document.getElementById('counter-val');
+  if(v) v.textContent=counterVal;
+}
+function enableCounterInput(){
+  document.getElementById('counter-val').style.display='none';
+  const inp=document.getElementById('counter-input');
+  inp.style.display='block'; inp.value=counterVal||''; inp.focus(); inp.select();
+}
+function disableCounterInput(){
+  const inp=document.getElementById('counter-input');
+  const v=parseInt(inp.value);
+  if(!isNaN(v)&&v>=0) counterVal=v;
+  inp.style.display='none';
+  document.getElementById('counter-val').style.display='block';
+  document.getElementById('counter-val').textContent=counterVal;
+}
+function handleCounterKey(e){
+  if(e.key==='Enter') disableCounterInput();
+  if(e.key==='Escape'){
+    document.getElementById('counter-input').style.display='none';
+    document.getElementById('counter-val').style.display='block';
+  }
+}
+function saveWorkout(){
+  const comment=document.getElementById('comment-textarea').value;
+  setResult(curDay.id,counterVal,comment);
+  const msg=document.getElementById('saved-msg');
+  msg.classList.add('show');
+  setTimeout(()=>msg.classList.remove('show'),2000);
+}
+
+// ── TIMERS ────────────────────────────────────────────────────────
+const TS={
+  interval:{iv:null,running:false,remaining:80,total:80},
+  rest:    {iv:null,running:false,remaining:600,total:600},
+};
+function fmtTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+function timerToggle(type){
+  const s=TS[type];
+  const dispId=type==='interval'?'t-display':'r-display';
+  const btnId=type==='interval'?'t-start-btn':'r-start-btn';
+  const cls=type==='interval'?'running':'running-rest';
+  const mId=type==='interval'?'t-min':'r-min';
+  const sId=type==='interval'?'t-sec':'r-sec';
+  if(!s.running){
+    if(s.remaining<=0){
+      s.remaining=(parseInt(document.getElementById(mId).value)||0)*60+(parseInt(document.getElementById(sId).value)||0);
+    }
+    s.total=s.remaining; s.running=true;
+    document.getElementById(btnId).textContent='пауза';
+    document.getElementById(dispId).classList.add(cls);
+    s.iv=setInterval(()=>{
+      s.remaining--;
+      document.getElementById(dispId).textContent=fmtTime(s.remaining);
+      if(s.remaining<=0){
+        clearInterval(s.iv); s.running=false;
+        document.getElementById(dispId).classList.remove(cls);
+        document.getElementById(btnId).textContent='старт';
+        showOverlay(type);
+      }
+    },1000);
+  } else {
+    clearInterval(s.iv); s.running=false;
+    document.getElementById(btnId).textContent='старт';
+    document.getElementById(dispId).classList.remove(cls);
+  }
+}
+
+function timerCancel(type){
+  const s=TS[type];
+  clearInterval(s.iv); s.running=false;
+  const dispId=type==='interval'?'t-display':'r-display';
+  const btnId=type==='interval'?'t-start-btn':'r-start-btn';
+  const cls=type==='interval'?'running':'running-rest';
+  const mId=type==='interval'?'t-min':'r-min';
+  const sId=type==='interval'?'t-sec':'r-sec';
+  const reset=(parseInt(document.getElementById(mId).value)||0)*60+(parseInt(document.getElementById(sId).value)||0);
+  s.remaining=reset;
+  document.getElementById(dispId).textContent=fmtTime(reset);
+  document.getElementById(dispId).classList.remove(cls);
+  document.getElementById(btnId).textContent='старт';
+  hideOverlay(type);
+}
+
+['t-min','t-sec'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  if(!TS.interval.running){
+    const r=(parseInt(document.getElementById('t-min').value)||0)*60+(parseInt(document.getElementById('t-sec').value)||0);
+    TS.interval.remaining=r;
+    document.getElementById('t-display').textContent=fmtTime(r);
+  }
+}));
+['r-min','r-sec'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  if(!TS.rest.running){
+    const r=(parseInt(document.getElementById('r-min').value)||0)*60+(parseInt(document.getElementById('r-sec').value)||0);
+    TS.rest.remaining=r;
+    document.getElementById('r-display').textContent=fmtTime(r);
+  }
+}));
+
+function showOverlay(type){
+  const ov=document.getElementById('ov-'+type);
+  const bg=document.getElementById('ov-'+type+'-bg');
+  ov.classList.add('show');
+  setTimeout(()=>bg.classList.add('visible'),10);
+}
+function hideOverlay(type){
+  document.getElementById('ov-'+type+'-bg').classList.remove('visible');
+  setTimeout(()=>document.getElementById('ov-'+type).classList.remove('show'),300);
+}
+function ovRepeat(type){
+  hideOverlay(type);
+  TS[type].remaining=TS[type].total;
+  const dispId=type==='interval'?'t-display':'r-display';
+  document.getElementById(dispId).textContent=fmtTime(TS[type].remaining);
+  setTimeout(()=>timerToggle(type),350);
+}
+function ovClose(type){hideOverlay(type);}
+
+// ── HISTORY ───────────────────────────────────────────────────────
+function renderHistory(){
+  const entries=[];
+  PLAN.forEach(phase=>phase.weeks.forEach(week=>week.days.forEach(day=>{
+    const r=getResult(day.id);
+    if(r) entries.push({phase:phase.label,week:week.name,day:day.day,name:day.name,reps:r.reps,date:r.date,comment:r.comment});
+  })));
+  const vals=entries.map(e=>e.reps);
+  document.getElementById('hist-sessions').textContent=entries.length;
+  document.getElementById('hist-best').textContent=vals.length?Math.max(...vals):'—';
+  document.getElementById('hist-avg').textContent=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):'—';
+  document.getElementById('hist-streak').textContent=entries.length>=3?Math.floor(entries.length/3):0;
+  const list=document.getElementById('history-list');
+  list.innerHTML='';
+  if(!entries.length){
+    list.innerHTML='<div style="color:var(--muted);font-size:14px;padding:20px 0;text-align:center">нет записей</div>';
+    return;
+  }
+  [...entries].reverse().forEach(e=>{
+    const el=document.createElement('div');
+    el.className='history-item';
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;width:100%">
+      <div>
+        <div style="font-size:14px;font-weight:500">${e.phase} · ${e.day} · ${e.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${e.date}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:var(--mono);font-size:16px;color:var(--accent)">${e.reps}</div>
+        <div style="font-size:11px;color:var(--muted)">повт</div>
+      </div>
+    </div>
+    ${e.comment?`<div style="font-size:12px;color:var(--muted);padding:4px 8px;background:var(--surface2);border-radius:6px;width:100%">${e.comment}</div>`:''}`;
+    list.appendChild(el);
+  });
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────
+function exportData(){
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(DB))));
+  const blob=new Blob([encoded],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='pullup1000_backup.txt'; a.click();
+  URL.revokeObjectURL(url);
+}
+function showImportModal(){
+  document.getElementById('import-textarea').value='';
+  document.getElementById('import-modal').classList.add('show');
+}
+function hideImportModal(){document.getElementById('import-modal').classList.remove('show');}
+function importData(){
+  const raw=document.getElementById('import-textarea').value.trim();
+  if(!raw){alert('Вставь код экспорта');return;}
+  try{
+    DB=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    saveToDB(DB); hideImportModal(); renderHistory(); renderHome();
+    alert('Данные импортированы ✓');
+  }catch(e){alert('Ошибка: неверный формат');}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+renderHome();
+</script>
+</body>
+</html>
